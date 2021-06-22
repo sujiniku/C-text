@@ -1,0 +1,1303 @@
+== 構造体 ==
+=== 構造体の基本 ===
+構造体（こうぞうたい）は、複数の異なる型のデータを、
+まとめて1つのデータ型として扱う方法である。
+
+いっぽう、構造体をもちいずに配列だけを使った場合では、異なる型をまとめて扱うことは、不可能な仕様である。（『[[C言語/配列]]』）
+
+しかし、C言語は、構造体を配列にすることは可能な仕様になっている。
+
+このため、たとえば「商品名 ＝ 牛乳、価格＝200」・「商品名＝オレンジ ジュース、価格＝150」のように、文字型の商品名と数値型の価格という異なるデータ型のまざったデータを並べたい場合、まず構造体で「char 商品名、 int 価格」　のような内容の構造体をつくり、それを配列などで必要な個数（この場合は2個）ぶん以上を確保することで、異なる型のまざったデータを扱えるようになる。
+
+
+より厳密には「構造体」とは、メンバオブジェクトの集合を順に割り付けたものである。<ref name="型">『JISX3010:2003』p.24「6.2.5 型」</ref>
+
+なお、構造体のかわりに、本書のタイトルにもある「共用体」を用いても、異なる型のまざったデータを扱うことができる。
+
+
+==== 構造体の型枠の宣言 ====
+上述の牛乳などの商品リストの例では、たとえば
+
+<syntaxhighlight lang="C">
+//例 構造体の宣言
+
+int main(void)
+{
+	struct 
+	{
+		char syouhinmei[32]; // 商品名
+		int kakaku; // 価格
+	} syouhin_list;
+}
+</syntaxhighlight>
+
+のように宣言することになる。
+
+struct は「ストラクト」と読む。英語で、なにかの構造のことを「structure」（ストラクチャー）という。なお、日常英語に struct （ストラクト）という語句は無い。（ストラクト struct はコンピュータ業界の専門用語。ふつうの英和辞典をしらべても、struct は無い。）
+
+さて、構造体を使うには、まず構造体の型枠を宣言し、
+次にその型枠を使って構造体を宣言しなければならない。
+<ref>構造体の型枠という用語はこの教科書独自のものであり、『JISX3010:2003』に出てくるわけではないので注意してください。</ref>
+
+構造体の型枠の宣言の記述は次のようになっている。
+<syntaxhighlight lang="C">
+struct タグ名
+{
+	データ型 メンバ名;
+		:
+		:
+};
+</syntaxhighlight>
+タグ名で、構造体の型枠に名前をつける。
+
+構造体が持つ1つ1つのデータを'''メンバ'''という。
+使用するメンバの数だけ、
+「データ型 メンバ名;」を含める。
+構造体の型枠の宣言は、
+単に構造体の型枠を作るに過ぎず、
+メモリ上に領域は確保されない。
+
+C++言語では構造体などのメンバに関数を含むこともでき「メンバ関数」などと呼ぶ。しかし、無印のC言語には、構造体に関数を含むことはできない（つまり、無印Cに「メンバ関数」の機能は無い）。
+
+* どうしても構造体と関数をグループにしたい場合
+なお、どうしても無印C言語の構造体で、その構造体を関数と関連付けたい場合、たとえば、構造体の中で、
+<syntaxhighlight lang="C">
+struct タグ名
+{
+		:
+		:
+	int kansuu_flag;
+		:
+		:
+};
+</syntaxhighlight>
+のように、関数を使うかどうかの判定用の数値を用意する。そして、構造体の外に、その関数の具体的な処理内容を書く。さらにmain関数などの内部においてIf文などで、kansuu_flagが（たとえば）1の場合にのみ、その関数を実行する、などの条件設定を行う。このようにして、ある構造体の中で、間接的に、関数と構造体を、グループ扱いすることができる。（なお、上述の kansuu_flag のように、ある処理を実行するか否かの判定をするための数値のことを、IT業界の用語で「フラグ」と、一般に言う。）
+
+
+==== 構造体変数 ====
+上述の飲料商品リストのコードのように構造体だけをつくっても、その構造体で示したパターンに従った変数は、まだ作られてはいない。
+
+構造体で示したパターンに従った変数を、構造体変数と言う。下記のように宣言する。
+
+<syntaxhighlight lang="C">
+﻿//例 GCCコンパイラでの実行例
+﻿//例 構造体変数の宣言
+#include <stdio.h>
+#include <string.h>
+
+int main(void)
+{
+	struct  syouhin_list
+	{
+		char syouhinmei[32]; // 商品名
+		int kakaku; // 価格
+	};
+
+
+	struct syouhin_list gyuunyuu; // 構造体 syouhin の構造体変数 gyuunyuu を宣言
+	struct syouhin_list orenji_jyuuusu; // 構造体 syouhin の構造体変数 orenji_jyuuusu を宣言
+
+	strcpy(gyuunyuu.syouhinmei,  "牛乳"); // C言語では文字列の代入には strcpy( , ) を使わなければならない
+	gyuunyuu.kakaku = 200;
+
+	strcpy(orenji_jyuuusu.syouhinmei,"オレンジジュース");
+	orenji_jyuuusu.kakaku = 150;
+
+	printf("商品名 : %s , 価格 : %d \n", gyuunyuu.syouhinmei, gyuunyuu.kakaku);
+	printf("商品名 : %s , 価格 : %d \n", orenji_jyuuusu.syouhinmei, orenji_jyuuusu.kakaku);
+}
+</syntaxhighlight>
+
+;実行結果
+ 商品名 : 牛乳 , 価格 : 200 
+ 商品名 : オレンジジュース , 価格 : 150 
+
+::※ Visual Studio だと、strcpy_sを使っても、なぜか「牛乳」のデータが文字化けして失敗する。
+
+構造体変数を宣言するときは、上述の
+<code> struct syouhin_list gyuunyuu ; </code>
+
+のように、
+
+<code> struct 呼び出し元の構造体名 変数名 ; </code>
+
+の書式で宣言する。
+
+
+また、構造体変数に代入したい場合など、構造体変数にアクセスしたい場合には、「.（ドット演算子）」を用いて、
+
+<code> gyuunyuu.kakaku </code>
+
+のように記述する。 
+
+つまり書式は、
+
+<code> 構造体名.構造体変数名 </code>
+
+のようになる。
+
+
+==== 構造体の宣言 ====
+構造体の宣言の記述は次のようになっている。
+
+<syntaxhighlight lang="C">
+struct タグ名 変数名のリスト;
+</syntaxhighlight>
+
+タグ名で、構造体の型枠を指定する。
+変数名のリストで、構造体に名前をつける。
+複数の構造体を宣言する時は、変数名を「,(コンマ)」で区切る。
+構造体の宣言で、タグ名が指す構造体の型枠を使って、メモリ上に領域を確保する。
+
+なお、構造体の型枠の宣言 と 構造体の宣言 とを、同時に行うこともできる。
+次のように記述する。
+
+<syntaxhighlight lang="C">
+struct タグ名
+{
+	データ型 メンバ名;
+		:
+		:
+} 変数名のリスト;
+</syntaxhighlight>
+この場合、タグ名は省略することができる。
+
+<syntaxhighlight lang="C">
+//例 構造体の宣言
+
+int main(void)
+{
+	struct
+	{
+		int i;
+		double d;
+		char c;
+		char str[32];
+	} kouzoutai;
+}
+</syntaxhighlight>
+上の例では、int型の変数i、double型の変数d、
+char型の変数c、char型の配列strの4つのメンバを持つ、
+kouzoutaiという名前の構造体を宣言している。
+
+また、構造体は、宣言と同時に、値のリストで初期化することもできる。
+初期化の記述は次のようになっている。
+<syntaxhighlight lang="C">
+struct タグ名 変数名 = {値のリスト};
+</syntaxhighlight>
+値のリストは「,(コンマ)」で区切った定数のリストである。
+
+<syntaxhighlight lang="C">
+//例 構造体の宣言と初期化
+int main(void)
+{
+	struct
+	{
+		int i;
+		double d;
+		char c;
+		char str[32];
+	} kouzoutai = { 1234, 3.14, 'a', "Hello, World!" };
+}
+</syntaxhighlight>
+上の例では、iを1234、dを3.14、cを'a'、strを"Hello, World!"で初期化している。
+
+==== 構造体のメンバへのアクセス ====
+構造体の各メンバにアクセスするには、
+「.（ドット）演算子」を用いて、次のように記述する。
+
+<syntaxhighlight lang="C">
+構造体の変数名.メンバ名
+</syntaxhighlight>
+
+<syntaxhighlight lang="C">
+//例 構造体へのアクセス
+#include <stdio.h>
+
+int main(void)
+{
+	struct
+	{
+		int i;
+		double d;
+		char c;
+		char str[32];
+	} kouzoutai;
+
+	printf("整数を入力してください。:");
+	scanf("%d", &kouzoutai.i); // 整数入力を kouzoutai.i に格納する。
+
+	printf("浮動小数点数を入力してください。:");
+	scanf("%lf", &kouzoutai.d); // 浮動小数点数入力を kouzoutai.d に格納する。
+
+	printf("文字（半角1文字）を入力してください。:");
+	scanf(" %c", &kouzoutai.c); // 文字入力を kouzoutai.c に格納する。
+
+	printf("文字列（半角31文字、全角15文字まで）を入力してください。:");
+	scanf("%31s", kouzoutai.str); // 文字列入力を kouzoutai.str に格納する。
+
+	printf("kouzoutaiのメンバの値は、%d %f %c %sです。\n", kouzoutai.i, kouzoutai.d, kouzoutai.c, kouzoutai.str);
+}
+</syntaxhighlight>
+
+上の例では、ユーザーからの4つの入力を、
+構造体の4つのメンバに格納し、
+その4つのメンバの値を表示している。
+
+==== 構造体のコピー ====
+配列と異なり、構造体は一度にコピーすることができる。
+構造体をコピーする時は、構造体の変数名のみを用いる。
+すなわち、次のように記述する。
+
+<syntaxhighlight lang="C">
+構造体の変数名 = 構造体の変数名;
+</syntaxhighlight>
+
+ただし、代入される構造体（上コードの左辺）と代入する構造体（上コードの右辺）は、構造体の型が一致していなければいけない<ref>[http://www.wisdomsoft.jp/343.html  Wisdomソフト『7.3.1 ポインタにキャストする』、文「異なる構造体形は型に互換性がないため、代入は認められないのです。」]</ref>。（仮にもし、違う構造体型の構造体どうしがコピーや代入を出来たとしても、正常動作するかアヤシイので、避けたほうが良い。）
+
+
+右の構造体の全てのメンバが左の構造体の全てのメンバにコピーされる。
+ただし、構造体のメンバにポインタを含む場合、
+この方法ではポインタの値がコピーされ、
+片方の構造体のポインタ先の値を変更すると、
+もう片方の構造体のポインタ先の値まで変わってしまう、
+いわゆる浅いコピー（シャローコピー）となるので注意が必要である。
+
+<syntaxhighlight lang="C">
+//例 構造体のコピー
+#include <stdio.h>
+
+int main(void)
+{
+	struct
+	{
+		int i;
+		double d;
+		char c;
+		char str[32];
+	} kouzoutai1 = {1234,3.14,'a',"Hello, World!"}, kouzoutai2;
+
+	kouzoutai2 = kouzoutai1;
+	printf("kouzoutai2のメンバの値は、%d %f %c %sです。\n", kouzoutai2.i, kouzoutai2.d, kouzoutai2.c, kouzoutai2.str);
+}
+</syntaxhighlight>
+
+==== typedefによるコードの短縮 ====
+typedefを構造体に用いて、コードを短縮することができる。
+
+<syntaxhighlight lang="C">
+//例 typedefを用いない構造体の宣言
+
+struct sKouzoutai
+{
+	int i;
+	double d;
+	char c;
+	char str[32];
+};
+
+int main(void)
+{
+	struct sKouzoutai kouzoutai;//構造体の宣言には「struct タグ名」が必要
+}
+</syntaxhighlight>
+
+上の例は typedef を用いて、下の例のように記述することができる。
+
+<syntaxhighlight lang="C">
+//例 typedefを用いた構造体の宣言
+
+typedef struct
+{
+	int i;
+	double d;
+	char c;
+	char str[32];
+} sKouzoutai;
+
+int main(void)
+{
+	sKouzoutai kouzoutai; // 構造体の宣言には「構造体の別名」が必要
+}
+</syntaxhighlight>
+
+=== 構造体の応用 ===
+==== 構造体を引数に持つ関数 ====
+構造体を関数の引数にしたい場合、下記のように行う。Windowsの Visual C++ での構造体配列のコードの例を下記に示す。
+
+<syntaxhighlight lang="C">
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h> // 「続行するには何かキーを押してください . . .」を表示するのに必要。
+
+struct  syouhin_list {
+	char syouhinmei[32]; // 商品名
+	int kakaku; // 価格
+};
+
+
+void kansuu(struct syouhin_list nomimono)  // このように、引数では struct から宣言する必要がある
+{
+	printf("商品名 : %s , 価格 : %d \n", nomimono.syouhinmei, nomimono.kakaku);
+}
+
+int main(void) {
+	struct syouhin_list gyuunyuu; // 構造体 syouhin の構造体変数 gyuunyuu を宣言
+	struct syouhin_list orenji_jyuuusu; // 構造体 syouhin の構造体変数 orenji_jyuuusu を宣言
+
+	strcpy_s(gyuunyuu.syouhinmei, 20, "牛乳"); // C言語では文字列の代入には strcpy( , ) を使わなければならない
+	gyuunyuu.kakaku = 200;
+
+	strcpy_s(orenji_jyuuusu.syouhinmei,20, "オレンジジュース");
+	orenji_jyuuusu.kakaku = 150;
+
+	kansuu(gyuunyuu); // 引数は構造体変数だけで良い。通常の関数と同様に、型は不要。
+	kansuu(orenji_jyuuusu); // 引数は構造体変数だけで良い
+
+	system("pause");// 「続行するには何かキーを押してください . . .」の待機命令
+	
+	return 0;
+}
+</syntaxhighlight>
+
+
+* 細かなノウハウ1
+構造体を呼び出す側の <code>gyuunyuu.kakaku</code> では、int や char などの型を'''つけない'''ように気をつけよう。
+
+実務では、いったん構造体を使わずにモデルとなる（非構造体の）通常の変数を作ってから、あとから手作業で構造体に置き換える場合もよくある。この置き換えの時、呼び出し側の場所でよく int や char などの型宣言が行われている場合があるが、構造体では型宣言は既に構造体の宣言の場所で行われているので不要だし、それに呼び出し側で型宣言するとコンパイルエラーになるので、どちらせにせよ呼び出し側からは重複する型宣言を除去する必要がある。
+
+
+* 細かなノウハウ2
+構造体の宣言は、main関数よりも上でも可能だが、つまり、
+<syntaxhighlight lang="C">
+struct  syouhin_list {
+	char syouhinmei[32]; // 商品名
+	int kakaku; // 価格
+};
+</syntaxhighlight>
+のような宣言はmain関数よりも上で行えるが、
+
+しかし、構造体の各要素の初期値代入(たとえば
+<syntaxhighlight lang="C">
+gyuunyuu.kakaku = 200;
+</syntaxhighlight>
+など）
+
+は一般のコンパイラ（たとえばWindowsならVisual Studio 2019）ではmain関数よりも上では不可能である。
+
+
+==== 構造体の配列 ====
+たとえば、学校での生徒の成績表のような、文字型と数値型が混ざるデータ構造を作りたい場合、つまり、異なる型を組み合わせたデータ構造をつくる場合には、構造体（または共用体）を要素とした配列をつくる必要がある。このような、配列と構造体を組み合わせたデータ構造は、ネット上では「構造体配列」または「構造体の配列」などと紹介されている。
+
+:※ かならずしも配列から構造体を呼び出さなくても良いが、実務上は、もし成績の構造体だけをつくっても、それを配列にしないと、実用的には不便である。なぜなら、配列でない個別の変数（構造体変数）に代入していく方式だと、たとえば成績表なら、クラスの人数ぶんだけ構造体変数を用意したりするハメになりかねない。たとえば1クラス当たり35人の学級なら、35個の構造体変数を用意するのは煩雑である。
+:よって成績表をつくるためには、まず構造体の機能で1人ぶんの氏名と成績とのデータの結びつけを作り、それを配列で生徒数のぶんだけ複製するのである。
+
+学校の成績表なら、まだクラスの生徒数がせいぜい数十名なので、構造体変数を数十個書くという方法でも、なんとか対応できる。だが、もし、大企業による提供サービスの登録者の会員名簿とかだと、会員数が数万名とかになるので、もはや構造体変数を1個ずつ書いていく方式は、不可能である。
+
+
+Windowsの Visual C++ での構造体配列のコードの例を下記に示す。
+
+（※ 他のコンパイラだとエラーになる場合もある。）
+
+<syntaxhighlight lang="cpp">
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h> // 「続行するには何かキーを押してください . . .」を表示するのに必要。
+
+struct seisekihyou {
+	char seitomei[100];
+	int syusseki_bangou;
+	int kokugo_tensuu;
+	int sugaku_tensuu;
+};
+
+int main(void)
+{
+	struct seisekihyou student[2]; // 構造体配列の宣言
+
+	strcpy_s( student[0].seitomei, 10 ,"山田"); 
+	student[0].kokugo_tensuu = 80;
+	student[0].sugaku_tensuu = 70;
+
+	strcpy_s(student[1].seitomei, 10 , "佐藤");
+	student[1].kokugo_tensuu = 60;
+	student[1].sugaku_tensuu = 90;
+
+	int i = 0;
+
+	for (i = 0; i<2; i = i + 1) 
+	{
+		printf("名前: %s, 国語: %d点, 数学: %d点\n", student[i].seitomei, student[i].kokugo_tensuu, student[i].sugaku_tensuu);
+	}
+
+	system("pause");// 「続行するには何かキーを押してください . . .」の待機命令
+
+	return 0;
+}
+</syntaxhighlight>
+
+:※ 上記のコードの動作確認として、 Visual Studio 2017 のCommunity 無料版でのC++で動作を確認ずみである。
+
+
+;実行結果
+ 名前: 山田, 国語: 80点, 数学: 70点
+ 名前: 佐藤, 国語: 60点, 数学: 90点
+
+
+いっぽう、gccコンパイラの場合、strcpy_s ではなく strcpy にしないと行けないので、上記のコードは使えないので、gccで動作させるには下記のようなコードになる。
+
+<syntaxhighlight lang="cpp">
+// gcc での構造体配列の例
+
+#include <stdio.h>
+#include <string.h>
+
+struct seisekihyou {
+	char seitomei[100];
+	int syusseki_bangou;
+	int kokugo_tensuu;
+	int sugaku_tensuu;
+};
+
+int main(void)
+{
+	struct seisekihyou student[2]; // 構造体配列の宣言
+
+	strcpy( student[0].seitomei ,"山田"); 
+	student[0].kokugo_tensuu = 80;
+	student[0].sugaku_tensuu = 70;
+
+	strcpy(student[1].seitomei, "佐藤");
+	student[1].kokugo_tensuu = 60;
+	student[1].sugaku_tensuu = 90;
+
+	int i = 0;
+
+	for (i = 0; i<2; i = i + 1) 
+	{
+		printf("名前: %s, 国語: %d点, 数学: %d点\n", student[i].seitomei, student[i].kokugo_tensuu, student[i].sugaku_tensuu);
+	}
+
+	return 0;
+}
+</syntaxhighlight>
+:※ 上記のコードの動作確認として、Fedora 28 （Linuxの一種）上での gcc で動作を確認ずみ。
+
+
+==== 構造体の配列の書式 ====
+構造体の配列を宣言する時は、
+変数名の後に「[要素数]」をつける。
+すなわち、次のように記述する。
+
+<syntaxhighlight lang="C">
+struct タグ名 配列の変数名[要素数];
+</syntaxhighlight>
+
+構造体の配列のメンバにアクセスする時は、
+変数名の後に「[添字]」をつける。
+すなわち、次のように記述する。
+
+<syntaxhighlight lang="C">
+配列の変数名[添字].メンバ名
+</syntaxhighlight>
+
+「[]」と「.」とは、
+同じ優先順位の演算子で、
+左から右へと評価されるため、
+次のような意味になる。
+
+<syntaxhighlight lang="C">
+(配列の変数名[添字]).メンバ名
+</syntaxhighlight>
+
+<syntaxhighlight lang="C">
+//例 構造体の配列
+#include <stdio.h>
+
+int main(void)
+{
+	struct
+	{
+		int i;
+		double d;
+		char c;
+		char str[32];
+	} kouzoutai[4] =
+		{
+			{12, 1.2, 'a', "abc"},
+			{34, 3.4, 'b', "def"},
+			{56, 5.6, 'c', "ghi"},
+			{78, 7.8, 'd', "jkl"},
+		};
+
+	int n;
+	for(n=0; n<4; ++n)
+		printf("kouzoutai[%d]のメンバの値は、%d %f %c %sです。\n",
+		n, kouzoutai[n].i, kouzoutai[n].d, kouzoutai[n].c, kouzoutai[n].str);
+}
+</syntaxhighlight>
+
+上の例では構造体の配列に初期値を与え、
+そのメンバの値を表示している。
+
+
+==== 構造体のネスト ====
+構造体のメンバに、構造体を指定することができる。
+これを構造体のネストと呼ぶ。
+
+ネストされた構造体にアクセスする時は、
+ネストの最も外側から内側に向かって、
+参照しなければならない。
+
+<syntaxhighlight lang="C">
+//例 構造体のネスト
+#include <stdio.h>
+
+int main(void)
+{
+	struct sKouzoutai1
+	{
+		int i;
+		double d;
+		char c;
+	};
+	
+	struct sKouzoutai2
+	{
+		int i;
+		double d;
+		char c;
+		struct sKouzoutai1 k;
+	}kouzoutai;
+
+	kouzoutai.i=1234;
+	kouzoutai.d=1.23;
+	kouzoutai.c='a';
+	kouzoutai.k.i=5678;
+	kouzoutai.k.d=5.67;
+	kouzoutai.k.c='b';
+
+	printf("%d %f %c\n",kouzoutai.i,kouzoutai.d,kouzoutai.c);
+	printf("%d %f %c\n",kouzoutai.k.i,kouzoutai.k.d,kouzoutai.k.c);
+}
+</syntaxhighlight>
+
+上の例では、kouzoutaiのメンバに、
+kという構造体がネストされていて、
+それらのメンバに値を代入したり、
+メンバの値を表示している。
+
+==== 構造体配列のネスト ====
+ある学級の生徒のデータベースを作りたいなら、前節のように構造体配列を使えばいいだろう。
+
+だが、1つの学年に学級が幾つもある場合、別別に構造体を作るのは避けたい。
+
+さらに、実用的な事を考えれば、1つの学校に、幾つもの学年があるわけであるので、それに対応したい。
+
+この事から、構造体配列を、構造体でネストする必要性が生じてくる。
+
+まず、前節の構造体配列の内容を、さらにネスト化してみよう（表示結果はまだ同じ）。
+
+
+;コード例（windows版）
+<syntaxhighlight lang="cpp">
+// windows版 gcc
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h> // 「続行するには何かキーを押してください . . .」を表示するのに必要。
+
+struct seisekihyou {
+	char seitomei[100];
+	int syusseki_bangou;
+	int kokugo_tensuu;
+	int sugaku_tensuu;
+};
+
+
+struct gakkyuu {
+        struct seisekihyou kumi;
+};
+
+
+int main(void)
+{        
+	struct gakkyuu student[2]; // 構造体配列の宣言
+
+	strcpy_s( student[0].kumi.seitomei, 10 ,"山田"); 
+	student[0].kumi.kokugo_tensuu = 80;
+	student[0].kumi.sugaku_tensuu = 70;
+
+	strcpy_s(student[1].kumi.seitomei, 10 , "佐藤");
+	student[1].kumi.kokugo_tensuu = 60;
+	student[1].kumi.sugaku_tensuu = 90;
+
+	int i = 0;
+
+	for (i = 0; i<2; i = i + 1) 
+	{
+		printf("名前: %s, 国語: %d点, 数学: %d点\n", student[i].kumi.seitomei, student[i].kumi.kokugo_tensuu, student[i].kumi.sugaku_tensuu);
+	}
+
+	system("pause");// 「続行するには何かキーを押してください . . .」の待機命令
+
+	return 0;
+}
+</syntaxhighlight>
+
+
+;実行結果
+<pre>
+名前: 山田, 国語: 80点, 数学: 70点
+名前: 佐藤, 国語: 60点, 数学: 90点
+</pre>
+:（Windows7上で、gccコンパイラで確認。）
+である。（※ 得点は最初の例と同じまま）
+
+とりあえず、構造体配列をネスト化することは、これで可能である事が実験できた。
+
+なお、Linux版gccでは、コードは下記のようになる。strcpy()関数がwindowsと違っている（windowsでは、ここは <code>strcpy_s() </code>関数になっている 。また <code>system("pause");</code> がコメントアウト）。
+
+
+;Linux版のコード例
+<syntaxhighlight lang="cpp">
+// linux版gcc
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h> // 「続行するには何かキーを押してください . . .」を表示するのに必要。
+
+struct seisekihyou {
+	char seitomei[100];
+	int syusseki_bangou;
+	int kokugo_tensuu;
+	int sugaku_tensuu;
+};
+
+
+struct gakkyuu {
+        struct seisekihyou kumi;
+};
+
+
+int main(void)
+{        
+	struct gakkyuu student[2]; // 構造体配列の宣言
+
+	strcpy( student[0].kumi.seitomei,"山田"); 
+	student[0].kumi.kokugo_tensuu = 80;
+	student[0].kumi.sugaku_tensuu = 70;
+
+	strcpy(student[1].kumi.seitomei , "佐藤");
+	student[1].kumi.kokugo_tensuu = 60;
+	student[1].kumi.sugaku_tensuu = 90;
+
+	int i = 0;
+
+	for (i = 0; i<2; i = i + 1) 
+	{
+		printf("名前: %s, 国語: %d点, 数学: %d点\n", student[i].kumi.seitomei, student[i].kumi.kokugo_tensuu, student[i].kumi.sugaku_tensuu);
+	}
+
+	// system("pause");// 「続行するには何かキーを押してください . . .」の待機命令
+
+	return 0;
+}
+
+</syntaxhighlight>
+:（※ 上記コードの動作確認については、Fedora33 にて 2011年1月24日 に動作確認ずみ。）
+
+上記コードの動作結果はwindows版と同じであるので、説明を省略する。
+:※ 以降、Linux版の例については、本節の最後の例を除いて省略する。つまり、上記の最初の例と、最後の例だけLinux版コードを紹介する。それ以外の場合については、その紹介例から容易にコードを作れる。
+
+
+しかし、私たちが作成したいのは、これを2学級以上に対応させる事である。（上記コードは、まだ1学級ぶんしか対応していない。
+
+これを2学級以上に対応させるには、単に下記のように
+
+<syntaxhighlight lang="cpp">
+struct gakkyuu {
+        struct seisekihyou kumi[2];
+};
+</syntaxhighlight>
+のように、呼び出し元のほうの構造体で配列変数を使えばいいだけである。
+
+論より証拠、下記のコードは実行できる。
+
+;コード例（windows版）
+<syntaxhighlight lang="cpp">
+// windows版
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h> // 「続行するには何かキーを押してください . . .」を表示するのに必要。
+
+struct seisekihyou {
+	char seitomei[100];
+	int syusseki_bangou;
+	int kokugo_tensuu;
+	int sugaku_tensuu;
+};
+
+
+struct gakkyuu {
+        struct seisekihyou kumi[2];
+};
+
+
+int main(void)
+{        
+	struct gakkyuu student[2]; // 構造体配列の宣言
+
+	strcpy_s( student[0].kumi[0].seitomei, 10 ,"山田gggg");  // 前コードと区別のため、文字を追加している
+	student[0].kumi[0].kokugo_tensuu = 80;
+	student[0].kumi[0].sugaku_tensuu = 70;
+
+	strcpy_s(student[1].kumi[0].seitomei, 10 , "佐藤");
+	student[1].kumi[0].kokugo_tensuu = 60;
+	student[1].kumi[0].sugaku_tensuu = 90;
+
+	int i = 0;
+
+	for (i = 0; i<2; i = i + 1) 
+	{
+		printf("名前: %s, 国語: %d点, 数学: %d点\n", student[i].kumi[0].seitomei, student[i].kumi[0].kokugo_tensuu, student[i].kumi[0].sugaku_tensuu);
+	}
+
+	system("pause");// 「続行するには何かキーを押してください . . .」の待機命令
+
+	return 0;
+}
+</syntaxhighlight>
+
+;実行結果
+<pre>
+名前: 山田gggg, 国語: 80点, 数学: 70点
+名前: 佐藤, 国語: 60点, 数学: 90点
+</pre>
+
+となる。（※ 得点は最初の例と同じまま）
+
+
+では、実際に2学級目のデータを入れたコードを作成してみて、実行して試してみよう。
+
+
+;コード例
+<syntaxhighlight lang="cpp">
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h> // 「続行するには何かキーを押してください . . .」を表示するのに必要。
+
+struct seisekihyou {
+	char seitomei[100];
+	int syusseki_bangou;
+	int kokugo_tensuu;
+	int sugaku_tensuu;
+};
+
+
+struct gakkyuu {
+        struct seisekihyou kumi[2];
+};
+
+
+int main(void)
+{        
+	struct gakkyuu student[2]; // 構造体配列の宣言
+
+	strcpy_s( student[0].kumi[0].seitomei, 10 ,"山田gggg"); 
+	student[0].kumi[0].kokugo_tensuu = 80;
+	student[0].kumi[0].sugaku_tensuu = 70;
+
+	strcpy_s(student[1].kumi[0].seitomei, 10 , "佐藤");
+	student[1].kumi[0].kokugo_tensuu = 60;
+	student[1].kumi[0].sugaku_tensuu = 90;
+
+	int i = 0;
+
+	for (i = 0; i<2; i = i + 1) 
+	{
+		printf("名前: %s, 国語: %d点, 数学: %d点\n", student[i].kumi[0].seitomei, student[i].kumi[0].kokugo_tensuu, student[i].kumi[0].sugaku_tensuu);
+	}
+
+
+        // 2学級目
+	strcpy_s( student[0].kumi[1].seitomei, 10 ,"安部"); 
+	student[0].kumi[1].kokugo_tensuu = 78;
+	student[0].kumi[1].sugaku_tensuu = 65;
+
+	strcpy_s(student[1].kumi[1].seitomei, 10 , "小泉");
+	student[1].kumi[1].kokugo_tensuu = 50;
+	student[1].kumi[1].sugaku_tensuu = 100;
+
+	// int i = 0; // 宣言済みなのでコメントアウト
+
+	for (i = 0; i<2; i = i + 1) 
+	{
+		printf("名前: %s, 国語: %d点, 数学: %d点\n", student[i].kumi[1].seitomei, student[i].kumi[1].kokugo_tensuu, student[i].kumi[1].sugaku_tensuu);
+	}
+
+
+	system("pause");// 「続行するには何かキーを押してください . . .」の待機命令
+
+	return 0;
+}
+</syntaxhighlight>
+
+;実行結果
+<pre>
+名前: 山田gggg, 国語: 80点, 数学: 70点
+名前: 佐藤, 国語: 60点, 数学: 90点
+名前: 安部, 国語: 78点, 数学: 65点
+名前: 小泉, 国語: 50点, 数学: 100点
+</pre>
+
+このように、たしかに2学級目も、データベースを作成できている。
+
+
+for文を使って短くすれば、下記のようになる。
+;コード例
+<syntaxhighlight lang="cpp">
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h> // 「続行するには何かキーを押してください . . .」を表示するのに必要。
+
+struct seisekihyou {
+    char seitomei[100];
+    int syusseki_bangou;
+    int kokugo_tensuu;
+    int sugaku_tensuu;
+};
+
+
+struct gakkyuu {
+    struct seisekihyou kumi[2];
+};
+
+
+int main(void)
+{        
+    struct gakkyuu student[2]; // 構造体配列の宣言
+
+
+    // 1学級目
+    strcpy_s( student[0].kumi[0].seitomei, 10 ,"山田gggg"); 
+    student[0].kumi[0].kokugo_tensuu = 80;
+    student[0].kumi[0].sugaku_tensuu = 70;
+
+    strcpy_s(student[1].kumi[0].seitomei, 10 , "佐藤");
+    student[1].kumi[0].kokugo_tensuu = 60;
+    student[1].kumi[0].sugaku_tensuu = 90;
+
+
+    // 2学級目
+    strcpy_s( student[0].kumi[1].seitomei, 10 ,"安部test"); // 前コードとの実行結果の区別のため、文字を追加
+    student[0].kumi[1].kokugo_tensuu = 78;
+    student[0].kumi[1].sugaku_tensuu = 65;
+
+    strcpy_s(student[1].kumi[1].seitomei, 10 , "小泉");
+    student[1].kumi[1].kokugo_tensuu = 50;
+    student[1].kumi[1].sugaku_tensuu = 100;
+
+    int i = 0;
+
+    for(int temp = 0; temp < 2 ; temp = temp +1 ){
+        for (i = 0; i<2; i = i + 1) 
+        {
+            printf("名前: %s, 国語: %d点, 数学: %d点\n", student[i].kumi[temp].seitomei, student[i].kumi[temp].kokugo_tensuu, student[i].kumi[temp].sugaku_tensuu);
+        }
+    } // for temp の終わり
+
+    system("pause");// 「続行するには何かキーを押してください . . .」の待機命令
+    return 0;
+}
+</syntaxhighlight>
+
+;実行結果
+<pre>
+名前: 山田gggg, 国語: 80点, 数学: 70点
+名前: 佐藤, 国語: 60点, 数学: 90点
+名前: 安部test, 国語: 78点, 数学: 65点
+名前: 小泉, 国語: 50点, 数学: 100点
+</pre>
+
+
+上述のような方法だと、確保される1学級あたりの要素数（生徒数に相当）は、どの学級も同じである。
+
+一つの学級だけ多くの要素数を確保しようと思っても、不可能である。
+
+C言語の配列はそもそも、標準的な方法では可変長配列を確保していない（C99で可変長配列のサポートとあるが、高度なプログラムのための限定的なものであり、様々な制約があり、決して初心者むけではない。）。それ以前からも malloc 等の関数を使って動的にメモリを確保することとポインタとを組み合わせることで、可変長配列のような機能を実装する事もできるが、コードが難しくなり、メンテナンスが難しくなるだろう。<ref>[https://teratail.com/questions/33699     teratail（webサイト）『C　入れ子構造の構造体にて配列を可変長にしたい』、投稿 2016/04/29 11:56] 2020年1月23日に閲覧して確認.</ref>  <ref> [https://www.it-swarm-ja.tech/ja/c/%E5%8F%AF%E5%A4%89%E9%95%B7%E9%85%8D%E5%88%97%E5%9E%8B%E3%81%AE%E6%A7%8B%E9%80%A0%E4%BD%93%E8%A6%81%E7%B4%A0%E3%82%92%E6%8C%81%E3%81%A4%E3%81%93%E3%81%A8%E3%81%AF%E3%81%A7%E3%81%8D%E3%81%BE%E3%81%99%E3%81%8B%EF%BC%9F/1055963913/   it-swarm-ja.tech『可変長配列型の構造体要素を持つことはできますか？』、2015/08/31] 2020年1月23日に閲覧して確認.</ref>特に、日本語環境などのメモリ確保領域を計算して管理するのは、かなり困難であろう。
+
+このため、構造体配列でも、mallocなどを用いない簡単な方法では、可変長配列を実装することは無理そうである。
+
+よって、あきらめて、すべての構造体配列の1つの配列あたりの要素数を同じにするのが良い。
+
+どうしても異なる要素数の構造体配列が必要なら、ネストとは別々に新規の構造体配列として、その配構造体列を分けるべきだろう。
+
+
+なお、Linux版のコード例を、本節の最後の例なので紹介する。
+
+;Linux版のコード例
+<syntaxhighlight lang="cpp">
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h> // 「続行するには何かキーを押してください . . .」を表示するのに必要。
+
+struct seisekihyou {
+    char seitomei[100];
+    int syusseki_bangou;
+    int kokugo_tensuu;
+    int sugaku_tensuu;
+};
+
+
+struct gakkyuu {
+    struct seisekihyou kumi[2];
+};
+
+
+int main(void)
+{        
+    struct gakkyuu student[2]; // 構造体配列の宣言
+
+
+    // 1学級目
+    strcpy( student[0].kumi[0].seitomei, "山田gggg"); 
+    student[0].kumi[0].kokugo_tensuu = 80;
+    student[0].kumi[0].sugaku_tensuu = 70;
+
+    strcpy(student[1].kumi[0].seitomei,  "佐藤");
+    student[1].kumi[0].kokugo_tensuu = 60;
+    student[1].kumi[0].sugaku_tensuu = 90;
+
+
+    // 2学級目
+    strcpy( student[0].kumi[1].seitomei, "安部test"); // 前コードとの実行結果の区別のため、文字を追加
+    student[0].kumi[1].kokugo_tensuu = 78;
+    student[0].kumi[1].sugaku_tensuu = 65;
+
+    strcpy(student[1].kumi[1].seitomei,  "小泉");
+    student[1].kumi[1].kokugo_tensuu = 50;
+    student[1].kumi[1].sugaku_tensuu = 100;
+
+    int i = 0;
+
+    for(int temp = 0; temp < 2 ; temp = temp +1 ){
+        for (i = 0; i<2; i = i + 1) 
+        {
+            printf("名前: %s, 国語: %d点, 数学: %d点\n", student[i].kumi[temp].seitomei, student[i].kumi[temp].kokugo_tensuu, student[i].kumi[temp].sugaku_tensuu);
+        }
+    } // for temp の終わり
+
+    // system("pause");// 「続行するには何かキーを押してください . . .」の待機命令
+    return 0;
+}
+</syntaxhighlight>
+:※（動作確認ずみ。Fedora33上の gcc および ./a.out にて2021年1月24日に動作確認。）
+
+実行結果はwindows版と同じであるので省略。
+
+==== 二重配列の構造体変数 ====
+構造体配列は、二重配列であっても良い。つまり、構造体変数には、二重配列を宣言する事も可能である。
+
+よって構造体のネストを使わなくても、下記コードのように二重配列でも代用できる。
+
+;コード例
+<syntaxhighlight lang="cpp">
+#include <stdio.h>
+#include <stdlib.h> // 「続行するには何かキーを押してください . . .」を表示するのに必要。
+#include <string.h>
+
+struct seisekihyou {
+    char seitomei[100];
+    int syusseki_bangou;
+    int kokugo_tensuu;
+    int sugaku_tensuu;
+};
+
+int main(void) {
+    struct seisekihyou student[3][2]; // 構造体配列の宣言   [組][組内番号]
+
+    strcpy_s(student[0][0].seitomei, 10, "山田123"); // 上記コードとの区別のため
+    student[0][0].kokugo_tensuu = 80;
+    student[0][0].sugaku_tensuu = 70;
+
+    strcpy_s(student[0][1].seitomei, 10, "佐藤");
+    student[0][1].kokugo_tensuu = 60;
+    student[0][1].sugaku_tensuu = 90;
+
+    strcpy_s(student[1][0].seitomei, 10, "安部");
+    student[1][0].kokugo_tensuu = 78;
+    student[1][0].sugaku_tensuu = 65;
+
+    strcpy_s(student[1][1].seitomei, 10, "小泉");
+    student[1][1].kokugo_tensuu = 50;
+    student[1][1].sugaku_tensuu = 100;
+
+    for (int kumi = 0; kumi <= 1; kumi = kumi + 1) {
+        for (int i = 0; i < 2; i = i + 1) {
+            printf("名前: %s, 国語: %d点, 数学: %d点\n",
+                   student[kumi][i].seitomei, student[kumi][i].kokugo_tensuu,
+                   student[kumi][i].sugaku_tensuu);
+        }
+    }
+
+    system("pause"); // 「続行するには何かキーを押してください . . .」の待機命令
+
+
+    return 0;
+}
+</syntaxhighlight>
+
+;実行結果
+<pre>
+名前: 山田123, 国語: 80点, 数学: 70点
+名前: 佐藤, 国語: 60点, 数学: 90点
+名前: 安部, 国語: 78点, 数学: 65点
+名前: 小泉, 国語: 50点, 数学: 100点
+</pre>
+
+<!-- ※ 今後の編集作業のための予備のタグ。
+;コード例
+<syntaxhighlight lang="cpp">
+
+</syntaxhighlight>
+
+;実行結果
+<pre>
+
+</pre>
+
+-->
+
+==== 構造体へのポインタ ====
+構造体へのポインタを宣言する時は、
+変数名の前に「*」をつける。
+すなわち、次のように記述する。
+
+<syntaxhighlight lang="C">
+struct タグ名 *ポインタの変数名;
+</syntaxhighlight>
+
+ポインタの指す構造体のメンバにアクセスする時は、
+変数名の前に「*」をつけ、それらを「()」で囲む。
+すなわち、次のように記述する。
+
+<syntaxhighlight lang="C">
+(*ポインタの変数名).メンバ名
+</syntaxhighlight>
+
+「*」と「.」とでは、「.」の方が優先順位が高い演算子であるため、
+「()」が必要である。
+
+また「<code>-></code>」（アロー演算子）を用いて、
+次のように記述でき、
+こちらが一般的に使われる。
+
+<syntaxhighlight lang="C">
+ポインタの変数名->メンバ名
+</syntaxhighlight>
+
+<syntaxhighlight lang="C">
+//例 構造体へのポインタ
+#include <stdio.h>
+#include <string.h>
+
+int main(void)
+{
+	struct
+	{
+		int i;
+		double d;
+		char c;
+		char str[32];
+	}kouzoutai, *pkouzoutai;
+
+	pkouzoutai=&kouzoutai;
+
+	pkouzoutai->i=1234;
+	pkouzoutai->d=3.14;
+	pkouzoutai->c='a';
+	strcpy(pkouzoutai->str,"Hello, World!");
+
+	printf("kouzoutaiのメンバの値は、%d %f %c %sです。\n",
+		pkouzoutai->i, pkouzoutai->d, pkouzoutai->c, pkouzoutai->str);
+}
+</syntaxhighlight>
+
+上の例では、構造体へのポインタを使って、
+構造体のメンバに値を代入したり、
+その値を表示したりしている。
+
+
+なお、strcpyは、文字列をコピーするための命令。strcpyを使うには、string.hのインクルードが必要である。
+
+また、文字列の宣言は、（上記の <code>char str[32];</code> のように）配列として宣言するのが一般的である。
+
+===== 構造体のポインタを引数にした関数 =====
+（アロー演算子を使わずに、そのまま）大きな構造体を引数に指定すると、
+実引数から仮引数へその構造体全体をコピーするため、
+時間がかかってしまう。
+
+高速化したい場合、構造体を引数として呼び出す際に、構造体をコピーせずに（引数として）参照できるようにすれば良いので、そのためにはポインタを活用する必要がある。
+
+構造体へのポインタを引数に指定すると、引数のコピーをせずに元々の構造体を参照するので、コピーの時間が省略されるしメモリも節約されるので、高速に処理できる。
+
+このような処理において、構造体を指すポインタのメンバにアクセスする場合には、（前の節で上述した）アロー演算子を使う。
+
+<syntaxhighlight lang="C">
+//例 引数に大きな構造体を指定する
+#include <stdio.h>
+
+//この構造体が非常に大きな構造体であるとする
+typedef struct
+{
+	int i;
+	double d;
+	char c;
+	char str[32];
+} sKouzoutai;
+
+void function(sKouzoutai *kouzoutai) //構造体へのポインタを引数に指定する
+{
+	printf("kouzoutaiのメンバの値は、%d %f %c %sです。\n", kouzoutai->i, kouzoutai->d, kouzoutai->c, kouzoutai->str);
+}
+
+int main(void)
+{
+	sKouzoutai kouzoutai = {1234, 3.14, 'a', "Hellol. World!" };
+	function(&kouzoutai) ;
+}
+</syntaxhighlight>
+
+function(sKouzoutai *kouzoutai) がポインタで呼び出せるようにするために、渡す側 function(&kouzoutai) はアドレスを渡している。
+
+===== メンバに同じ型へのポインタを持つ構造体 =====
+構造体のメンバに、自分自身と同じ型へのポインタを指定することができる。
+このような構造体を自己参照構造体と呼ぶ。
+<syntaxhighlight lang="C">
+//例 自己参照構造体
+#include <stdio.h>
+
+int main(void)
+{
+	struct sKouzoutai
+	{
+		int i;
+		double d;
+		char c;
+		char str[32];
+		struct sKouzoutai *next;
+	};
+	
+	struct sKouzoutai a={123, 1.23, 'a', "abc"},
+			b={456, 4.56, 'b', "def"},
+			c={789, 7.89, 'c', "ghi"};
+	struct sKouzoutai *p;	
+
+	a.next=&b;
+	b.next=&c;
+	c.next=NULL;
+
+	for(p=&a; p; p=p->next)
+		printf("%d %f %c %s\n",
+			p->i, p->d, p->c, p->str);
+}
+</syntaxhighlight>
+
+上の例では、
+3つの構造体a、b、cのメンバを、
+ポインタpを用いて、表示している。
+
+== 共用体 ==
+共用体とは、重なり合って割り付けた変数の集合である。<ref name="型"/>
+共用体は、メモリ上の一箇所を、
+2つ以上のメンバで共有する方法である。
+共用体の使い方は、構造体と似ているが、
+共用体の全てのメンバは、
+メモリ上の一箇所に格納されている点が異なる。
+共用体のサイズは、
+共用体のもっとも大きなメンバのサイズになる。
+
+=== 共用体の型枠の宣言 ===
+共用体を使うには、まず共用体の型枠を宣言し、
+次にその型枠を使って共用体を宣言しなければならない。
+<ref>共用体の型枠という用語はこの教科書独自のものであり、『JISX3010:2003』に出てくるわけではないので注意してください。</ref>
+
+共用体の型枠の宣言は次のように記述する。
+<syntaxhighlight lang="C">
+union タグ名
+{
+	データ型 メンバ名;
+		:
+		:
+};
+</syntaxhighlight>
+
+=== 共用体の宣言 ===
+共用体の宣言は次のように記述する。
+<syntaxhighlight lang="C">
+union タグ名 変数名のリスト;
+</syntaxhighlight>
+
+なお、共用体の型枠の宣言と共用体の宣言とを、
+同時に行うこともできる。
+次のように記述する。
+<syntaxhighlight lang="C">
+union タグ名
+{
+	データ型 メンバ名;
+		:
+		:
+}変数名のリスト;
+</syntaxhighlight>
+
+=== 共用体のメンバへのアクセス ===
+共用体のメンバにアクセスする時は、
+「.（ドット演算子）」を用いて、次のように記述する。
+<syntaxhighlight lang="C">
+共用体の変数名.メンバ名
+</syntaxhighlight>
+
+<syntaxhighlight lang="C">
+//例 共用体
+#include <stdio.h>
+
+int main(void)
+{
+	struct sbits
+	{
+		// リトルエンディアン
+		unsigned char bit8:1;
+		unsigned char bit7:1;
+		unsigned char bit6:1;
+		unsigned char bit5:1;
+		unsigned char bit4:1;
+		unsigned char bit3:1;
+		unsigned char bit2:1;
+		unsigned char bit1:1;
+	};
+
+	union
+	{
+		unsigned char c;
+		struct sbits bits;
+	}u;
+
+	u.c=170;
+	printf("u.cの値は%dです。\n", u.c);
+	printf("u.cのビット表現は%d%d%d%d%d%d%d%dです。\n",
+		u.bits.bit1,u.bits.bit2,u.bits.bit3,u.bits.bit4,
+		u.bits.bit5,u.bits.bit6,u.bits.bit7,u.bits.bit8);
+}
+</syntaxhighlight>
+
+上の例では、
+ビットフィールドと共用体を用いて、
+ある値のビット表現を表示している。
+このような使い方をする場合、エンディアン（複数バイトをどのような順で格納するかの形式）に注意せよ。
+
+== 脚注 ==
+<references/>
+
+== 参考文献 ==
+* 日本工業標準調査会『JISX3010 プログラム言語Ｃ』2003年12月20日改正
+
+[[Category:C言語|こうそうたい きようようたい]]
